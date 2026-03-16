@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+		<title>Pregnancy Wheel</title>
+		<style>
+    #pregnancy-calculator-container {
+      background-color: #03787C;
+    }
+
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 18px;
+    }
+
+    h2 {
+      font-size: 20px;
+      font-weight: 600;
+      color: white;
+      margin-bottom: 10px;
+    }
+
+    label {
+      font-size: 14px;
+      display: block;
+      margin-bottom: 5px;
+      color: white;
+    }
+
+    input[type="date"] {
+      font-size: 14px;
+      padding: 6px;
+      border: 1px solid #8a8886;
+      border-radius: 2px;
+      margin-bottom: 10px;
+    }
+
+    button {
+      font-size: 14px;
+      font-weight: 600;
+      background-color: #97C139;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      cursor: pointer;
+      border-radius: 5px;
+      margin-right: 10px;
+    }
+
+    button:hover {
+      background-color: #02575b;
+      transition: background 0.2s;
+    }
+
+    #result {
+      margin-top: 15px;
+      font-size: 14px;
+      font-weight: 400;
+      color: white;
+    }
+
+    .highlight-yellow {
+      color: #DFEE0F;
+      font-weight: bold;
+    }
+
+    .highlight-salmon {
+      color: #FF91A4;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .calculator-section {
+      margin-top: 15px;
+    }
+  </style>
+	</head>
+	<body>
+		<div id="pregnancy-calculator-container">
+			<h2>Pregnancy Calculator</h2>
+			<label>
+				<input type="radio" name="mode" value="lmp" checked onclick="toggleCalculator()"> Based on LMP
+			</label>
+				<label>
+					<input type="radio" name="mode" value="edd" onclick="toggleCalculator()"> Based on EDD
+			</label>
+					<div class="calculator-section" id="lmp-section">
+						<label for="lmp">Enter First Day of Last Menstrual Period (LMP):</label>
+						<input type="date" id="lmp" />
+						<br />
+						<button onclick="calculateDueDate()">Calculate</button>
+						<button onclick="resetCalculator()">Clear</button>
+					</div>
+					<div class="calculator-section" id="edd-section" style="display: none;">
+						<label for="edd">Enter Estimated Due Date (EDD):</label>
+						<input type="date" id="edd" />
+						<br />
+						<button onclick="calculateFromEDD()">Calculate</button>
+						<button onclick="resetCalculator()">Clear</button>
+					</div>
+					<p id="result">
+					</p>
+				</div>
+				<script>
+  function toggleCalculator() {
+    const mode = document.querySelector('input[name="mode"]:checked').value;
+    document.getElementById("lmp-section").style.display = (mode === "lmp") ? "block" : "none";
+    document.getElementById("edd-section").style.display = (mode === "edd") ? "block" : "none";
+    document.getElementById("result").innerHTML = "";
+  }
+
+  function calculateDueDate() {
+    const lmpInput = document.getElementById("lmp").value;
+    const resultEl = document.getElementById("result");
+
+    if (!lmpInput) {
+      resultEl.innerHTML = "❗ Please enter a valid LMP date.";
+      return;
+    }
+
+    const [year, month, day] = lmpInput.split("-").map(Number);
+    const lmp = new Date(year, month - 1, day);
+    const today = new Date();
+    const msInDay = 86400000;
+    const maxWeeks = 44;
+
+    if (isNaN(lmp.getTime())) {
+      resultEl.innerHTML = "❗ Invalid date format.";
+      return;
+    }
+
+    if (lmp > today) {
+      resultEl.innerHTML = "❗ LMP cannot be in the future.";
+      return;
+    }
+
+    if ((today - lmp) / msInDay > maxWeeks * 7) {
+      resultEl.innerHTML = `❗ LMP cannot be more than ${maxWeeks} weeks ago.`;
+      return;
+    }
+
+    const edd = new Date(lmp.getTime() + 280 * msInDay);
+    const gestationalAgeDays = Math.floor((today - lmp) / msInDay);
+    const gestationalAgeWeeks = Math.floor(gestationalAgeDays / 7);
+    const gestationalAgeDaysRemainder = gestationalAgeDays % 7;
+
+    const datingStart = new Date(lmp.getTime() + 49 * msInDay);
+    const datingEnd = new Date(lmp.getTime() + 77 * msInDay);
+    const nuchalStart = new Date(lmp.getTime() + 77 * msInDay);
+    const nuchalEnd = new Date(lmp.getTime() + 98 * msInDay - 1 * msInDay);
+    const detailedStart = new Date(lmp.getTime() + 126 * msInDay);
+    const detailedEnd = new Date(lmp.getTime() + 141 * msInDay - 1 * msInDay);
+
+    resultEl.innerHTML = `
+      <br>
+				<b>Estimated Due Date:</b> ${edd.toDateString()}<br>
+				<br>
+					<b>Approximate Gestational Age:</b> ${gestationalAgeWeeks} weeks ${gestationalAgeDaysRemainder} days<br>
+					<br>
+						<b>Suggested <span class="highlight-salmon">Dating</span> Ultrasound:</b> (7w0d - 11w0d)<br>
+      Between <span class="highlight-yellow">${datingStart.toDateString()}</span> and <span class="highlight-yellow">${datingEnd.toDateString()}</span>
+						<br>
+							<br>
+								<b>Suggested <span class="highlight-salmon">Nuchal</span> Ultrasound:</b> (11w0d - 13w6d)<br>
+      Between <span class="highlight-yellow">${nuchalStart.toDateString()}</span> and <span class="highlight-yellow">${nuchalEnd.toDateString()}</span>
+								<br>
+									<br>
+										<b>Suggested <span class="highlight-salmon">Detailed</span> Ultrasound:</b> (18w0d - 20w0d)<br>
+      Between <span class="highlight-yellow">${detailedStart.toDateString()}</span> and <span class="highlight-yellow">${detailedEnd.toDateString()}</span>
+    `;
+  }
+
+  function calculateFromEDD() {
+    const eddInput = document.getElementById("edd").value;
+    const resultEl = document.getElementById("result");
+
+    if (!eddInput) {
+      resultEl.innerHTML = "❗ Please enter a valid EDD.";
+      return;
+    }
+
+    const [year, month, day] = eddInput.split("-").map(Number);
+    const edd = new Date(year, month - 1, day);
+    const today = new Date();
+    const oneDayMs = 86400000;
+    const maxWeeks = 44;
+
+    today.setHours(0, 0, 0, 0);
+    edd.setHours(0, 0, 0, 0);
+
+    if (isNaN(edd.getTime())) {
+      resultEl.innerHTML = "❗ Invalid date format.";
+      return;
+    }
+
+    if (edd < today) {
+      resultEl.innerHTML = "❗ EDD cannot be in the past.";
+      return;
+    }
+
+    if ((edd - today) / oneDayMs > maxWeeks * 7) {
+      resultEl.innerHTML = `❗ EDD is too far in the future (more than ${maxWeeks} weeks ahead).`;
+      return;
+    }
+
+    const lmp = new Date(edd.getTime() - 280 * oneDayMs);
+    const daysPregnant = Math.ceil((today - lmp) / oneDayMs);
+    const weeks = Math.floor(daysPregnant / 7);
+    const days = daysPregnant % 7;
+
+    const datingStart = new Date(lmp.getTime() + 50 * oneDayMs);
+    const datingEnd = new Date(lmp.getTime() + 78 * oneDayMs - oneDayMs);
+    const nuchalStart = new Date(lmp.getTime() + 77 * oneDayMs);
+    const nuchalEnd = new Date(lmp.getTime() + 98 * oneDayMs - oneDayMs);
+    const detailedStart = new Date(lmp.getTime() + 126 * oneDayMs);
+    const detailedEnd = new Date(lmp.getTime() + 141 * oneDayMs - oneDayMs);
+    const bppStart = new Date(lmp.getTime() + 196 * oneDayMs);
+
+    resultEl.innerHTML = `
+      <b>Estimated Due Date (EDD):</b> ${edd.toDateString()}<br>
+										<br>
+											<b>Gestational Age Today:</b> ${weeks} weeks ${days} days<br>
+											<br>
+												<b>Suggested <span class="highlight-salmon">Dating</span> Ultrasound:</b> (7w0d - 11w0d)<br>
+      Between <span class="highlight-yellow">${datingStart.toDateString()}</span> and <span class="highlight-yellow">${datingEnd.toDateString()}</span>
+												<br>
+													<br>
+														<b>Suggested <span class="highlight-salmon">Nuchal</span> Ultrasound:</b> (11w0d - 13w6d)<br>
+      Between <span class="highlight-yellow">${nuchalStart.toDateString()}</span> and <span class="highlight-yellow">${nuchalEnd.toDateString()}</span>
+														<br>
+															<br>
+																<b>Suggested <span class="highlight-salmon">Detailed</span> Ultrasound:</b> (18w0d - 20w0d)<br>
+      Between <span class="highlight-yellow">${detailedStart.toDateString()}</span> and <span class="highlight-yellow">${detailedEnd.toDateString()}</span>
+																<br>
+																	<br>
+																		<b>Suggested <span class="highlight-salmon">BPP</span> Ultrasound:</b> (28w0d+)<br>
+      On or after <span class="highlight-yellow">${bppStart.toDateString()}</span>
+    `;
+  }
+
+  function resetCalculator() {
+    document.getElementById("lmp").value = "";
+    document.getElementById("edd").value = "";
+    document.getElementById("result").innerHTML = "";
+  }
+</script>
+																	</body>
+																</html>
