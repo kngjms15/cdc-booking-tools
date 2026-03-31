@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Screening Questions | Notepad</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        background: #03787c;
+        overflow: hidden;
+        font-family: "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      #notepad-container {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 100%;
+        min-height: 100vh;
+        max-height: 500px;
+        margin: 0;
+        background-color: #03787c;
+        font-size: 16px;
+        color: white;
+      }
+
+      #notepad-container h3 {
+        margin: 0 0 10px 0;
+        font-size: 18px;
+        line-height: 1.3;
+      }
+
+      #notepad-container p {
+        margin: 0 0 10px 0;
+        line-height: 1.4;
+      }
+
+      .tab-container {
+        display: flex;
+        background-color: #ddd;
+        border-radius: 8px 8px 0 0;
+        margin-bottom: 1px;
+        overflow: hidden;
+      }
+
+      .tab {
+        flex: 1;
+        padding: 10px;
+        background-color: #f1f1f1;
+        text-align: center;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+        color: #333;
+        transition: background 0.2s;
+        user-select: none;
+      }
+
+      .tab.active {
+        background-color: #005c5f;
+        color: white;
+      }
+
+      #notepad-content {
+        flex-grow: 1;
+        padding: 10px;
+        background-color: #005c5f;
+        color: white;
+        overflow-y: auto;
+        outline: none;
+        font-size: 16px;
+        font-family: inherit;
+        width: 100%;
+        min-height: 200px;
+        border-radius: 0 0 8px 8px;
+      }
+
+      #notepad-content div {
+        margin-bottom: 4px;
+      }
+
+      #button-container {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+        width: 100%;
+      }
+
+      button {
+        flex: 1;
+        padding: 10px 12px;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition:
+          background 0.2s,
+          transform 0.1s;
+      }
+
+      #highlight-text {
+        background-color: #0078d4;
+      }
+
+      #highlight-text:hover {
+        background-color: #055a9e;
+        transform: scale(1.02);
+      }
+
+      #clear-text {
+        background-color: #ff4c4c;
+      }
+
+      #clear-text:hover {
+        background-color: #d93c3c;
+        transform: scale(1.02);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="notepad-container">
+      <h3>Screening Questions | Notepad</h3>
+      <p>*Notes will disappear when you leave this page!</p>
+
+      <div class="tab-container">
+        <div class="tab active" id="tab-new-booking">New Booking</div>
+        <div class="tab" id="tab-rebook">Rebook</div>
+      </div>
+
+      <div id="notepad-content" contenteditable="true"></div>
+
+      <div id="button-container">
+        <button id="highlight-text">Highlight &amp; Copy</button>
+        <button id="clear-text">Clear</button>
+      </div>
+    </div>
+
+    <script>
+      function initializeNotepad() {
+        const defaultContents = {
+          "new-booking": `
+          <div>Pt Diabetic | have allergies? N</div>
+          <div>Pt pregnant? (ask female patients only) N</div>
+          <div>Pt under 300 lbs? Y</div>
+          <div>Patient mobile? Y</div>
+          <div>Pt aware of exam length? Y</div>
+        `,
+          rebook: `
+          <div>Pt aware of exam length?&nbsp;</div>
+        `,
+        };
+
+        let activeTab = "new-booking";
+        const notepad = document.getElementById("notepad-content");
+
+        function switchTab(tab) {
+          activeTab = tab;
+          document
+            .querySelectorAll(".tab")
+            .forEach((t) => t.classList.remove("active"));
+          document.getElementById(`tab-${tab}`).classList.add("active");
+          notepad.innerHTML = defaultContents[tab];
+        }
+
+        document
+          .getElementById("tab-new-booking")
+          .addEventListener("click", function () {
+            switchTab("new-booking");
+          });
+
+        document
+          .getElementById("tab-rebook")
+          .addEventListener("click", function () {
+            switchTab("rebook");
+          });
+
+        document
+          .getElementById("highlight-text")
+          .addEventListener("click", async function () {
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(notepad);
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            try {
+              await navigator.clipboard.writeText(notepad.innerText);
+            } catch {
+              document.execCommand("copy");
+            }
+
+            alert("All text highlighted and copied!");
+          });
+
+        document
+          .getElementById("clear-text")
+          .addEventListener("click", function () {
+            if (confirm("Are you sure you want to clear the text?")) {
+              notepad.innerHTML = defaultContents[activeTab];
+            }
+          });
+
+        switchTab(activeTab);
+      }
+
+      document.addEventListener("DOMContentLoaded", initializeNotepad);
+    </script>
+  </body>
+</html>
