@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Screening Questions Notepad</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #f3f4f6;
+    }
+
+    .launcher-wrap {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .open-tool-btn {
+      background: #03787C;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+
+    .open-tool-btn:hover {
+      background: #02686b;
+    }
+
+    /* Modal window */
+    .tool-window {
+      position: fixed;
+      top: 90px;
+      left: 90px;
+      width: 520px;
+      max-width: calc(100vw - 24px);
+      background: #03787C;
+      border-radius: 12px;
+      box-shadow: 0 20px 45px rgba(0,0,0,0.25);
+      overflow: hidden;
+      z-index: 9999;
+      display: none;
+    }
+
+    .tool-window.show {
+      display: block;
+    }
+
+    .tool-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 14px;
+      background: #025d60;
+      color: white;
+      cursor: move;
+      user-select: none;
+    }
+
+    .tool-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .tool-controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .tool-control-btn {
+      border: none;
+      background: rgba(255,255,255,0.16);
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .tool-control-btn:hover {
+      background: rgba(255,255,255,0.28);
+    }
+
+    .tool-body {
+      padding: 14px;
+      color: white;
+    }
+
+    .tool-body p {
+      margin: 4px 0 10px 0;
+    }
+
+    /* Notepad */
+    .tab-container {
+      display: flex;
+      background-color: #ddd;
+      border-radius: 8px 8px 0 0;
+      margin-bottom: 1px;
+      overflow: hidden;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 10px;
+      background-color: #f1f1f1;
+      text-align: center;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      color: #333;
+      transition: background 0.2s;
+    }
+
+    .tab.active {
+      background-color: #005C5F;
+      color: white;
+    }
+
+    #notepad-content {
+      padding: 12px;
+      background-color: #005C5F;
+      color: white;
+      overflow-y: auto;
+      outline: none;
+      font-size: 15px;
+      font-family: inherit;
+      width: 100%;
+      min-height: 240px;
+      max-height: 320px;
+      border-radius: 0 0 8px 8px;
+    }
+
+    #notepad-content div {
+      margin-bottom: 8px;
+    }
+
+    #button-container {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .action-btn {
+      flex: 1;
+      padding: 10px 14px;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: 0.2s ease;
+    }
+
+    #highlight-text {
+      background-color: #0078D4;
+    }
+
+    #highlight-text:hover {
+      background-color: #055A9E;
+    }
+
+    #clear-text {
+      background-color: #FF4C4C;
+    }
+
+    #clear-text:hover {
+      background-color: #D93C3C;
+    }
+
+    .helper-text {
+      font-size: 12px;
+      opacity: 0.9;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 640px) {
+      .tool-window {
+        width: calc(100vw - 16px);
+        left: 8px !important;
+        top: 8px !important;
+      }
+
+      #button-container {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="launcher-wrap">
+    <button class="open-tool-btn" id="openToolBtn">Open Screening Questions Notepad</button>
+  </div>
+
+  <div class="tool-window" id="toolWindow">
+    <div class="tool-header" id="toolHeader">
+      <h2 class="tool-title">Screening Questions | Notepad</h2>
+      <div class="tool-controls">
+        <button class="tool-control-btn" id="resetWindowBtn" title="Reset position">↺</button>
+        <button class="tool-control-btn" id="closeToolBtn" title="Close">×</button>
+      </div>
+    </div>
+
+    <div class="tool-body">
+      <p>*Notes will disappear when you leave this page!</p>
+
+      <div class="tab-container">
+        <div class="tab active" id="tab-new-booking">New Booking</div>
+        <div class="tab" id="tab-rebook">Rebook</div>
+      </div>
+
+      <div id="notepad-content" contenteditable="true"></div>
+
+      <div id="button-container">
+        <button class="action-btn" id="highlight-text">Highlight & Copy</button>
+        <button class="action-btn" id="clear-text">Clear</button>
+      </div>
+
+      <div class="helper-text">
+        Drag this window by the header bar. Close it when done.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // -----------------------------
+    // Tool open / close
+    // -----------------------------
+    const openToolBtn = document.getElementById("openToolBtn");
+    const closeToolBtn = document.getElementById("closeToolBtn");
+    const resetWindowBtn = document.getElementById("resetWindowBtn");
+    const toolWindow = document.getElementById("toolWindow");
+
+    openToolBtn.addEventListener("click", () => {
+      toolWindow.classList.add("show");
+    });
+
+    closeToolBtn.addEventListener("click", () => {
+      toolWindow.classList.remove("show");
+    });
+
+    resetWindowBtn.addEventListener("click", () => {
+      toolWindow.style.top = "90px";
+      toolWindow.style.left = "90px";
+    });
+
+    // -----------------------------
+    // Draggable window
+    // -----------------------------
+    const toolHeader = document.getElementById("toolHeader");
+
+    let isDragging = false;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    toolHeader.addEventListener("mousedown", (e) => {
+      isDragging = true;
+      offsetX = e.clientX - toolWindow.offsetLeft;
+      offsetY = e.clientY - toolWindow.offsetTop;
+      document.body.style.userSelect = "none";
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      if (!isDragging) return;
+
+      let newLeft = e.clientX - offsetX;
+      let newTop = e.clientY - offsetY;
+
+      const maxLeft = window.innerWidth - toolWindow.offsetWidth;
+      const maxTop = window.innerHeight - toolWindow.offsetHeight;
+
+      if (newLeft < 0) newLeft = 0;
+      if (newTop < 0) newTop = 0;
+      if (newLeft > maxLeft) newLeft = maxLeft;
+      if (newTop > maxTop) newTop = maxTop;
+
+      toolWindow.style.left = newLeft + "px";
+      toolWindow.style.top = newTop + "px";
+    });
+
+    document.addEventListener("mouseup", () => {
+      isDragging = false;
+      document.body.style.userSelect = "";
+    });
+
+    // -----------------------------
+    // Notepad logic
+    // -----------------------------
+    const defaultContents = {
+      "new-booking": `
+        <div>Priors:&nbsp;</div>
+        <div>Pt Diabetic | have allergies?&nbsp;</div>
+        <div>Pt on Blood thinners | Antibiotics?&nbsp;</div>
+        <div>Pt pregnant? (ask female patients only)&nbsp;</div>
+        <div>Pt under 300 lbs?&nbsp;</div>
+        <div>Patient mobile?&nbsp;</div>
+        <div>Pt aware of exam length?&nbsp;</div>
+      `,
+      "rebook": `
+        <div>Are you currently taking antibiotics?&nbsp;</div>
+        <div>Pt aware of exam length?&nbsp;</div>
+      `
+    };
+
+    let activeTab = "new-booking";
+
+    const notepad = document.getElementById("notepad-content");
+    const tabNewBooking = document.getElementById("tab-new-booking");
+    const tabRebook = document.getElementById("tab-rebook");
+    const highlightBtn = document.getElementById("highlight-text");
+    const clearBtn = document.getElementById("clear-text");
+
+    function switchTab(tab) {
+      activeTab = tab;
+
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      document.getElementById(`tab-${tab}`).classList.add("active");
+
+      notepad.innerHTML = defaultContents[tab];
+    }
+
+    tabNewBooking.addEventListener("click", () => {
+      switchTab("new-booking");
+    });
+
+    tabRebook.addEventListener("click", () => {
+      switchTab("rebook");
+    });
+
+    highlightBtn.addEventListener("click", async () => {
+      const text = notepad.innerText.trim();
+
+      const selection = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(notepad);
+      selection.removeAllRanges();
+      selection.addRange(range);
+
+      try {
+        await navigator.clipboard.writeText(text);
+        alert("All text highlighted and copied.");
+      } catch {
+        document.execCommand("copy");
+        alert("All text highlighted and copied.");
+      }
+    });
+
+    clearBtn.addEventListener("click", () => {
+      if (confirm("Are you sure you want to clear the text?")) {
+        notepad.innerHTML = defaultContents[activeTab];
+      }
+    });
+
+    switchTab(activeTab);
+  </script>
+</body>
+</html>
