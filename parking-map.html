@@ -1,0 +1,1199 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CDC Parking Lot Map (Pan & Zoom)</title>
+  </head>
+
+  <style>
+    /* --- Pan/Zoom frame --- */
+    .pz-frame {
+      width: 100%;
+      height: 100vh;
+      /* Viewport height; adjust if you prefer */
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      overflow: hidden;
+      /* Hide when panning out of bounds */
+      position: relative;
+      background: #fff;
+      touch-action: none;
+      /* Enables custom touch gestures */
+    }
+
+    .pz-content {
+      /* We’ll transform this element via JS (translate + scale) */
+      transform-origin: 0 0;
+      will-change: transform;
+    }
+
+    .pz-controls {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      display: flex;
+      gap: 6px;
+      z-index: 10;
+    }
+
+    .pz-controls button {
+      background: #0078d4;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font:
+        600 14px "Segoe UI",
+        sans-serif;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    .pz-controls button:hover {
+      opacity: 0.9;
+    }
+
+    /* --- Your existing styles (with earlier fixes) --- */
+    .parking-scroll-wrapper {
+      width: 100%;
+      border: none;
+    }
+
+    #cdc-parking {
+      font-family: "Segoe UI", sans-serif;
+      display: block;
+      width: 3100px;
+      /* Fixed “design size” for consistent baseline zoom */
+      height: 2258px;
+      margin: 0;
+      background: #fff;
+      padding: 10px 10px;
+      box-sizing: border-box;
+      border: 5px solid green;
+      border-radius: 10px;
+    }
+
+    /* Layout */
+    .section-1 {
+      display: flex;
+      width: 3100px;
+    }
+
+    .section-2 {
+      display: flex;
+      width: 2975px;
+      height: 1989px;
+    }
+
+    .section-1-sideWalk {
+      height: 102px;
+      width: 100px;
+      background-color: #d9d9d9;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      text-align: center;
+    }
+
+    .aStall {
+      width: 51px;
+      height: 100px;
+      border: 1px solid black;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+
+      font-size: 11px;
+      word-break: normal;
+      white-space: normal;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .section-2a {
+      /* west side walk */
+      display: block;
+      width: 100px;
+      height: 1989px;
+    }
+
+    .section-2a-1 {
+      width: 100px;
+      height: 1824px;
+      background-color: #d9d9d9;
+    }
+
+    .section-2a-2 {
+      width: 100px;
+      height: 165px;
+    }
+
+    .section-2c-fg {
+      /* fg container */
+      display: block;
+      width: 304px;
+      height: 1989px;
+    }
+
+    .section-2b {
+      display: block;
+      width: 2580px;
+      height: 1989px;
+    }
+
+    .section-2b-northDriveway {
+      width: 2570px;
+      height: 159px;
+      background-color: #ffffff;
+    }
+
+    .section-2b-bcd {
+      display: block;
+      width: 2194px;
+      height: 1527px;
+    }
+
+    .section-2b-d-container {
+      display: block;
+      width: 2332px;
+      height: 140px;
+      border: 1px solid black;
+    }
+
+    .section-2c {
+      /* section - for fg stalls */
+      width: 304px;
+      height: 1987px;
+    }
+
+    .section-2b-bcd-bstalls {
+      display: flex;
+      width: 2196px;
+      height: 101;
+    }
+
+    .section-2b-bcd-stall {
+      width: 50px;
+      height: 100px;
+      border: 1px solid black;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      text-align: center;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .section-2b-bcd-northSideWalk {
+      width: 2194px;
+      height: 38px;
+      background-color: #d9d9d9;
+    }
+
+    .section-2b-bcd-building {
+      display: flex;
+      width: 2193px;
+      height: 1386px;
+      border: 1px solid black;
+      align-items: center;
+      justify-content: center;
+      font-size: 100px;
+      text-align: center;
+    }
+
+    .section-2c {
+      display: flex;
+      width: 139px;
+      height: 1525px;
+    }
+
+    .section-2b-bd-container {
+      display: flex;
+    }
+
+    .section-2c-eastSideWalk {
+      width: 38px;
+      height: 1525px;
+      background-color: #d9d9d9;
+    }
+
+    .section-2c-cStalls {
+      display: block;
+      width: 50px;
+      height: 1525px;
+    }
+
+    .section-2c-stall {
+      width: 100px;
+      height: 50px;
+      border: 1px solid black;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      text-align: center;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .section-2b-southSideWalk {
+      width: 2332px;
+      height: 38px;
+      background-color: #d9d9d9;
+    }
+
+    .section-2b-dStalls {
+      display: flex;
+      width: 2332px;
+      height: 100px;
+    }
+
+    .dStall {
+      width: 50px;
+      height: 100px;
+      border: 1px solid black;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      text-align: center;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .section-2c-northDriveWay {
+      width: 304px;
+      height: 123px;
+      background-color: #ffffff;
+    }
+
+    .section-2c-gStalls {
+      display: flex;
+    }
+
+    .gStall {
+      width: 50px;
+      height: 100px;
+      border: 1px solid black;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      text-align: center;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .section-2c-fStalls-container {
+      display: flex;
+    }
+
+    .section-2c-fStalls {
+      display: block;
+    }
+
+    .fStall {
+      width: 100px;
+      height: 50px;
+      border: 1px solid black;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      text-align: center;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .section-3-container {
+      display: flex;
+      width: 2936px;
+      height: 100px;
+      border: 1px solid black;
+    }
+
+    .eStall {
+      width: 50px;
+      height: 100px;
+      border: 1px solid black;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      text-align: center;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+  </style>
+
+  <body>
+    <!-- Pan/Zoom Frame -->
+    <div class="pz-frame" id="pz-frame">
+      <div class="pz-content" id="pz-content">
+        <!-- ======= MAP CONTENT START ======= -->
+        <div class="parking-scroll-wrapper">
+          <div id="cdc-parking">
+            <!--Outer boundary-->
+            <div class="section-1">
+              <!--section 1 container-->
+              <div class="section-1-sideWalk"></div>
+              <div class="aStall"><span>Handicap</span></div>
+              <div class="aStall" style="background-color: #f9b8ff">
+                <span>Sloane Square Visitor</span>
+              </div>
+              <div class="aStall" style="background-color: #f9b8ff">
+                <span>Sloane Square Visitor</span>
+              </div>
+              <div class="aStall" style="background-color: #f9b8ff">
+                <span>Sloane Square Visitor</span>
+              </div>
+              <div class="aStall" style="background-color: #f9b8ff">
+                <span>Sloane Square Visitor</span>
+              </div>
+              <div class="aStall" style="background-color: #f9b8ff">
+                <span>Sloane Square Visitor</span>
+              </div>
+              <div class="aStall" style="background-color: #f9b8ff">
+                <span>Sloane Square Visitor</span>
+              </div>
+              <div class="aStall" style="background-color: #f9b8ff">
+                <span>Sloane Square Visitor</span>
+              </div>
+              <div class="aStall" style="background-color: #f9b8ff">
+                <span>Sloane Square Visitor</span>
+              </div>
+              <div class="aStall"><span>Wright Const.</span></div>
+              <div class="aStall"><span>Wright Const.</span></div>
+              <div class="aStall"><span>Wright Const.</span></div>
+              <div class="aStall"><span>Wright Const.</span></div>
+              <div class="aStall"><span>Wright Const.</span></div>
+              <div class="aStall"><span>Wright Const.</span></div>
+              <div class="aStall"><span>Wright Const.</span></div>
+              <div class="aStall"><span>Wright Const.</span></div>
+              <div class="aStall" style="background-color: #f9b8ff">
+                <span>Sloane Square Visitor</span>
+              </div>
+              <div class="aStall" style="background-color: #f9b8ff">
+                <span>Sloane Square Visitor</span>
+              </div>
+              <div class="aStall"><span>Ronmor Holdings</span></div>
+              <div class="aStall"><span>Ronmor Holdings</span></div>
+              <div class="aStall"><span>Ronmor Holdings</span></div>
+              <div class="aStall"><span>Ronmor Holdings</span></div>
+              <div class="aStall"><span>Ronmor Holdings</span></div>
+              <div class="aStall" style="background-color: #f9b8ff">
+                <span>Sloane Square Visitor</span>
+              </div>
+              <div class="aStall" style="background-color: #f9b8ff">
+                <span>Sloane Square Visitor</span>
+              </div>
+              <div class="aStall" style="background-color: #f9b8ff">
+                <span>Sloane Square Visitor</span>
+              </div>
+              <div class="aStall" style="background-color: #f9b8ff">
+                <span>Sloane Square Visitor</span>
+              </div>
+              <div class="aStall" style="background-color: #f9b8ff">
+                <span>Sloane Square Visitor</span>
+              </div>
+              <div class="aStall"><span>Chinook Medical</span></div>
+              <div class="aStall"><span>Chinook Medical</span></div>
+              <div class="aStall"><span>Chinook Medical</span></div>
+              <div class="aStall"><span>Chinook Medical</span></div>
+              <div class="aStall"><span>Chinook Medical</span></div>
+              <div class="aStall"><span>Chinook Medical</span></div>
+              <div class="aStall"><span>Chinook Medical</span></div>
+              <div class="aStall" style="background-color: #92d050">
+                <span>CDC 109</span>
+              </div>
+              <div class="aStall" style="background-color: #92d050">
+                <span>CDC 108</span>
+              </div>
+              <div class="aStall" style="background-color: #92d050">
+                <span>CDC 107</span>
+              </div>
+              <div class="aStall" style="background-color: #92d050">
+                <span>CDC 106</span>
+              </div>
+              <div class="aStall" style="background-color: #92d050">
+                <span>CDC 105</span>
+              </div>
+              <div class="aStall" style="background-color: #92d050">
+                <span>CDC 104</span>
+              </div>
+              <div class="aStall" style="background-color: #92d050">
+                <span>CDC 103</span>
+              </div>
+              <div class="aStall" style="background-color: #92d050">
+                <span>CDC 102</span>
+              </div>
+              <div class="aStall" style="background-color: #92d050">
+                <span>CDC 101</span>
+              </div>
+              <div class="aStall" style="background-color: #92d050">
+                <span>CDC 100</span>
+              </div>
+              <div class="aStall"><span>Ronmor Visitor</span></div>
+              <div class="aStall"><span>Ronmor Visitor</span></div>
+              <div class="aStall"><span>Ronmor Visitor</span></div>
+              <div class="aStall"><span>Ronmor Holdings</span></div>
+              <div class="aStall"><span>Ronmor Holdings</span></div>
+              <div class="aStall"><span>Ronmor Holdings</span></div>
+              <div class="aStall"><span>Ronmor Holdings</span></div>
+              <div class="aStall"><span>Ronmor Holdings</span></div>
+              <div class="aStall"><span>Ronmor Visitor</span></div>
+              <div class="aStall"><span>Ronmor Visitor</span></div>
+            </div>
+            <div class="section-2">
+              <!-- Container middle area -->
+              <div class="section-2a">
+                <!-- west side walk -->
+                <div class="section-2a-1"></div>
+                <div class="section-2a-2"></div>
+              </div>
+              <div class="section-2b">
+                <div class="section-2b-northDriveway"></div>
+                <div class="section-2b-bd-container">
+                  <div class="section-2b-bcd">
+                    <div class="section-2b-bcd-bstalls">
+                      <div class="section-2b-bcd-stall" style="width: 70px">
+                        Handicap
+                      </div>
+                      <div
+                        class="section-2b-bcd-stall"
+                        style="background-color: #f9b8ff"
+                      >
+                        Sloane Square Visitor
+                      </div>
+                      <div
+                        class="section-2b-bcd-stall"
+                        style="background-color: #f9b8ff"
+                      >
+                        Sloane Square Visitor
+                      </div>
+                      <div
+                        class="section-2b-bcd-stall"
+                        style="background-color: #f9b8ff"
+                      >
+                        Sloane Square Visitor
+                      </div>
+                      <div
+                        class="section-2b-bcd-stall"
+                        style="background-color: #f9b8ff"
+                      >
+                        Sloane Square Visitor
+                      </div>
+                      <div
+                        class="section-2b-bcd-stall"
+                        style="background-color: #f9b8ff"
+                      >
+                        Sloane Square Visitor
+                      </div>
+                      <div
+                        class="section-2b-bcd-stall"
+                        style="background-color: #f9b8ff"
+                      >
+                        Sloane Square Visitor
+                      </div>
+                      <div
+                        class="section-2b-bcd-stall"
+                        style="background-color: #f9b8ff"
+                      >
+                        Sloane Square Visitor
+                      </div>
+                      <div
+                        class="section-2b-bcd-stall"
+                        style="background-color: #f9b8ff"
+                      >
+                        Sloane Square Visitor
+                      </div>
+                      <div
+                        class="section-2b-bcd-stall"
+                        style="background-color: #f9b8ff"
+                      >
+                        Sloane Square Visitor
+                      </div>
+                      <div
+                        class="section-2b-bcd-stall"
+                        style="
+                          width: 93px;
+                          height: 102px;
+                          background-color: #d9d9d9;
+                          border: none;
+                        "
+                      ></div>
+                      <div class="section-2b-bcd-stall">Ronmor Holdings</div>
+                      <div class="section-2b-bcd-stall">Ronmor Holdings</div>
+                      <div class="section-2b-bcd-stall">Ronmor Holdings</div>
+                      <div class="section-2b-bcd-stall">Ronmor Holdings</div>
+                      <div class="section-2b-bcd-stall">Ronmor Holdings</div>
+                      <div class="section-2b-bcd-stall">Ronmor Holdings</div>
+                      <div class="section-2b-bcd-stall">Reserved</div>
+                      <div class="section-2b-bcd-stall">Reserved</div>
+                      <div
+                        class="section-2b-bcd-stall"
+                        style="
+                          width: 35px;
+                          height: 102px;
+                          background-color: #d9d9d9;
+                          border: none;
+                        "
+                      ></div>
+                      <div class="section-2b-bcd-stall">Ronmor Visitor</div>
+                      <div class="section-2b-bcd-stall">Ronmor Visitor</div>
+                      <div
+                        class="section-2b-bcd-stall"
+                        style="background-color: #f9b8ff"
+                      >
+                        Sloane Square Visitor
+                      </div>
+                      <div class="section-2b-bcd-stall">Reserved</div>
+                      <div class="section-2b-bcd-stall">Chinook Medical</div>
+                      <div class="section-2b-bcd-stall">Chinook Medical</div>
+                      <div class="section-2b-bcd-stall">Chinook Medical</div>
+                      <div class="section-2b-bcd-stall">Chinook Medical</div>
+                      <div class="section-2b-bcd-stall">Chinook Medical</div>
+                      <div class="section-2b-bcd-stall" style="width: 76px">
+                        Handicap
+                      </div>
+                      <div
+                        class="section-2b-bcd-stall"
+                        style="
+                          width: 93px;
+                          height: 102px;
+                          background-color: #d9d9d9;
+                          border: none;
+                        "
+                      ></div>
+                      <div class="section-2b-bcd-stall">CMC Dr</div>
+                      <div class="section-2b-bcd-stall">CMC Dr</div>
+                      <div
+                        class="section-2b-bcd-stall"
+                        style="background-color: #92d050"
+                      >
+                        CDC 177
+                      </div>
+                      <div
+                        class="section-2b-bcd-stall"
+                        style="background-color: #92d050"
+                      >
+                        CDC 178
+                      </div>
+                      <div
+                        class="section-2b-bcd-stall"
+                        style="background-color: #92d050"
+                      >
+                        CDC 179
+                      </div>
+                      <div
+                        class="section-2b-bcd-stall"
+                        style="background-color: #92d050"
+                      >
+                        CDC 180
+                      </div>
+                      <div
+                        class="section-2b-bcd-stall"
+                        style="background-color: #92d050"
+                      >
+                        CDC 181
+                      </div>
+                      <div
+                        class="section-2b-bcd-stall"
+                        style="background-color: #92d050"
+                      >
+                        CDC 182
+                      </div>
+                      <div
+                        class="section-2b-bcd-stall"
+                        style="background-color: #92d050"
+                      >
+                        CDC 183
+                      </div>
+                      <div
+                        class="section-2b-bcd-stall"
+                        style="background-color: #92d050"
+                      >
+                        CDC 184
+                      </div>
+                    </div>
+                    <div class="section-2b-bcd-northSideWalk"></div>
+                    <div class="section-2b-bcd-building">
+                      <div><h1>SLOANE SQUARE</h1></div>
+                      <div>
+                        <h4>5920 - 1A Street SW Calgary, AB T2H 0G3</h4>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="section-2c">
+                    <div class="section-2c-eastSideWalk"></div>
+                    <div class="section-2c-cStalls">
+                      <div
+                        class="section-2c-stall"
+                        style="height: 55px; background-color: #92d050"
+                      >
+                        CDC 185
+                      </div>
+                      <div
+                        class="section-2c-stall"
+                        style="height: 55px; background-color: #92d050"
+                      >
+                        CDC 186
+                      </div>
+                      <div
+                        class="section-2c-stall"
+                        style="height: 55px; background-color: #92d050"
+                      >
+                        CDC 187
+                      </div>
+                      <div
+                        class="section-2c-stall"
+                        style="height: 55px; background-color: #92d050"
+                      >
+                        CDC 188
+                      </div>
+                      <div
+                        class="section-2c-stall"
+                        style="height: 55px; background-color: #92d050"
+                      >
+                        CDC 189
+                      </div>
+                      <div
+                        class="section-2c-stall"
+                        style="height: 55px; background-color: #92d050"
+                      >
+                        CDC 190
+                      </div>
+                      <div class="section-2c-stall" style="height: 55px">
+                        Zivot Group
+                      </div>
+                      <div class="section-2c-stall" style="height: 55px">
+                        Zivot Group
+                      </div>
+                      <div class="section-2c-stall" style="height: 55px">
+                        Zivot Group
+                      </div>
+                      <div class="section-2c-stall" style="height: 55px">
+                        Zivot Group
+                      </div>
+                      <div class="section-2c-stall" style="height: 55px">
+                        Zivot Group
+                      </div>
+                      <div class="section-2c-stall" style="height: 55px">
+                        Zivot Group
+                      </div>
+                      <div
+                        class="section-2c-stall"
+                        style="height: 55px; background-color: #d9d9d9"
+                      ></div>
+                      <div class="section-2c-stall" style="height: 88px">
+                        Handicap
+                      </div>
+                      <div class="section-2c-stall">Sylogist Ltd.</div>
+                      <div class="section-2c-stall">Sylogist Ltd.</div>
+                      <div class="section-2c-stall">Sylogist Ltd.</div>
+                      <div class="section-2c-stall">Sylogist Ltd.</div>
+                      <div class="section-2c-stall">Iris Mack</div>
+                      <div class="section-2c-stall">Iris Mack</div>
+                      <div class="section-2c-stall">JFSC</div>
+                      <div class="section-2c-stall">JFSC</div>
+                      <div
+                        class="section-2c-stall"
+                        style="height: 70px; background-color: #d9d9d9"
+                      >
+                        stall
+                      </div>
+                      <div class="section-2c-stall">JFSC</div>
+                      <div class="section-2c-stall">JFSC</div>
+                      <div class="section-2c-stall">JFSC</div>
+                      <div class="section-2c-stall">JFSC</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="section-2b-d-container">
+                  <div class="section-2b-southSideWalk"></div>
+                  <div class="section-2b-dStalls">
+                    <div class="dStall">Fusion Dental</div>
+                    <div class="dStall">Fusion Dental</div>
+                    <div class="dStall">Fusion Dental</div>
+                    <div class="dStall">Fusion Dental</div>
+                    <div class="dStall">Fusion Dental</div>
+                    <div class="dStall">WMTC</div>
+                    <div class="dStall">WMTC</div>
+                    <div class="dStall">WMTC</div>
+                    <div class="dStall">WMTC</div>
+                    <div class="dStall">Ronmor Operations</div>
+                    <div class="dStall">Ignite Nutrition</div>
+                    <div class="dStall">Connection Health</div>
+                    <div class="dStall">Connection Health</div>
+                    <div class="dStall">Connection Health</div>
+                    <div class="dStall">Nyla Free Designs</div>
+                    <div class="dStall" style="background-color: #d9d9d9"></div>
+                    <div class="dStall">Nyla Free Designs</div>
+                    <div class="dStall">Nyla Free Designs</div>
+                    <div class="dStall">Nyla Free Designs</div>
+                    <div class="dStall">Nyla Free Designs</div>
+                    <div class="dStall">Network Recycling</div>
+                    <div class="dStall">Network Recycling</div>
+                    <div class="dStall">Network Recycling</div>
+                    <div class="dStall">Network Recycling</div>
+                    <div class="dStall">Derma Vital</div>
+                    <div class="dStall">Derma Vital</div>
+                    <div class="dStall">Derma Vital</div>
+                    <div class="dStall">Derma Vital</div>
+                    <div class="dStall">Cherrington Sawers</div>
+                    <div class="dStall">Cherrington Sawers</div>
+                    <div class="dStall">Cherrington Sawers</div>
+                    <div
+                      class="dStall"
+                      style="width: 95px; background-color: #d9d9d9"
+                    ></div>
+                    <div class="dStall">Handicap</div>
+                    <div class="dStall">Amy Lao Acupuncture</div>
+                    <div class="dStall">MBD LLP</div>
+                    <div class="dStall">MBD LLP</div>
+                    <div class="dStall">MBD LLP</div>
+                    <div class="dStall">MBD LLP</div>
+                    <div class="dStall">MBD LLP</div>
+                    <div class="dStall">MBD LLP</div>
+                    <div class="dStall">David Yetman</div>
+                    <div class="dStall">David Yetman</div>
+                    <div class="dStall">David Yetman</div>
+                    <div class="dStall">David Yetman</div>
+                    <div class="dStall">David Yetman</div>
+                  </div>
+                </div>
+              </div>
+              <div class="section-2c-fg">
+                <!--fg container-->
+                <div class="section-2c-northDriveWay"></div>
+                <div class="section-2c-gStalls">
+                  <div class="gStall">Ronmor Holdings</div>
+                  <div class="gStall">Ronmor Holdings</div>
+                  <div class="gStall">Ronmor Visitor</div>
+                  <div class="gStall">Ronmor Visitor</div>
+                  <div class="gStall">Ronmor Visitor</div>
+                </div>
+                <div class="section-2c-fStalls-container">
+                  <div class="section-2c-fStalls">
+                    <div class="fStall">CLS</div>
+                    <div class="fStall">CLS</div>
+                    <div class="fStall">CLS</div>
+                    <div class="fStall">CLS</div>
+                    <div class="fStall">CLS</div>
+                    <div class="fStall">CLS</div>
+                    <div class="fStall">CLS</div>
+                    <div class="fStall">CLS</div>
+                    <div class="fStall">CLS</div>
+                    <div class="fStall">Ronmor Visitor</div>
+                    <div class="fStall">Ronmor Visitor</div>
+                    <div class="fStall">Ronmor Visitor</div>
+                    <div class="fStall">Ronmor Visitor</div>
+                    <div class="fStall">Ronmor Visitor</div>
+                    <div class="fStall" style="background-color: #f9b8ff">
+                      Sloane Square Visitor
+                    </div>
+                    <div class="fStall">Modern Living Diagnostics</div>
+                    <div class="fStall">Modern Living Diagnostics</div>
+                    <div class="fStall">Modern Living Diagnostics</div>
+                    <div class="fStall">Storewest</div>
+                    <div class="fStall">Osteo Holistic</div>
+                    <div class="fStall">Osteo Holistic</div>
+                    <div class="fStall" style="background-color: #f9b8ff">
+                      Sloane Square Visitor
+                    </div>
+                    <div class="fStall">JFSC</div>
+                    <div class="fStall" style="background-color: #92d050">
+                      CDC 62
+                    </div>
+                    <div class="fStall" style="background-color: #92d050">
+                      CDC 61
+                    </div>
+                    <div class="fStall" style="background-color: #92d050">
+                      CDC 60
+                    </div>
+                    <div class="fStall" style="background-color: #92d050">
+                      CDC 59
+                    </div>
+                    <div class="fStall" style="background-color: #92d050">
+                      CDC 58
+                    </div>
+                    <div class="fStall" style="background-color: #92d050">
+                      CDC 57
+                    </div>
+                    <div class="fStall" style="background-color: #92d050">
+                      CDC 26
+                    </div>
+                    <div class="fStall" style="background-color: #92d050">
+                      CDC 55
+                    </div>
+                    <div class="fStall" style="background-color: #92d050">
+                      CDC 54
+                    </div>
+                    <div class="fStall" style="background-color: #92d050">
+                      CDC 53
+                    </div>
+                    <div class="fStall">Ronmor Operations</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="section-3-container">
+              <div class="eStall">Reserved</div>
+              <div class="eStall">Fusion Dental</div>
+              <div class="eStall">Fusion Dental</div>
+              <div class="eStall">Fusion Dental</div>
+              <div class="eStall">Fusion Dental</div>
+              <div class="eStall">Fusion Dental</div>
+              <div class="eStall">Fusion Dental</div>
+              <div class="eStall">WMTC</div>
+              <div class="eStall">WMTC</div>
+              <div class="eStall">Ronmor Holdings</div>
+              <div class="eStall" style="background-color: #d9d9d9"></div>
+              <div class="eStall">Ronmor Operations</div>
+              <div class="eStall">Storewest Storage</div>
+              <div class="eStall">Storewest Storage</div>
+              <div class="eStall">Storewest Storage</div>
+              <div class="eStall">Ronmor Holdings</div>
+              <div class="eStall">Ronmor Holdings</div>
+              <div class="eStall">Nyla Free Designs</div>
+              <div class="eStall">Madacalo</div>
+              <div class="eStall">Madacalo</div>
+              <div class="eStall">Madacalo</div>
+              <div class="eStall">Madacalo</div>
+              <div class="eStall">Madacalo</div>
+              <div class="eStall">Storewest</div>
+              <div class="eStall">Storewest</div>
+              <div class="eStall" style="background-color: #f9b8ff">
+                Sloane Square Visitor
+              </div>
+              <div class="eStall" style="background-color: #f9b8ff">
+                Sloane Square Visitor
+              </div>
+              <div class="eStall" style="background-color: #f9b8ff">
+                Sloane Square Visitor
+              </div>
+              <div class="eStall" style="background-color: #f9b8ff">
+                Sloane Square Visitor
+              </div>
+              <div class="eStall">Storewest</div>
+              <div class="eStall">Storewestr</div>
+              <div class="eStall" style="background-color: #f9b8ff">
+                Sloane Square Visitor
+              </div>
+              <div class="eStall" style="background-color: #f9b8ff">
+                Sloane Square Visitor
+              </div>
+              <div class="eStall" style="background-color: #f9b8ff">
+                Sloane Square Visitor
+              </div>
+              <div class="eStall" style="background-color: #f9b8ff">
+                Sloane Square Visitor
+              </div>
+              <div class="eStall" style="background-color: #f9b8ff">
+                Sloane Square Visitor
+              </div>
+              <div class="eStall" style="background-color: #f9b8ff">
+                Sloane Square Visitor
+              </div>
+              <div class="eStall" style="background-color: #f9b8ff">
+                Sloane Square Visitor
+              </div>
+              <div class="eStall" style="background-color: #f9b8ff">
+                Sloane Square Visitor
+              </div>
+              <div class="eStall" style="background-color: #f9b8ff">
+                Sloane Square Visitor
+              </div>
+              <div class="eStall" style="background-color: #f9b8ff">
+                Sloane Square Visitor
+              </div>
+              <div class="eStall" style="background-color: #f9b8ff">
+                Sloane Square Visitor
+              </div>
+              <div class="eStall" style="background-color: #f9b8ff">
+                Sloane Square Visitor
+              </div>
+              <div class="eStall">Alist Security Group</div>
+              <div class="eStall">Alist Security Group</div>
+              <div class="eStall">Alist Security Group</div>
+              <div class="eStall">Alist Security Group</div>
+              <div class="eStall">Alist Security Group</div>
+              <div class="eStall">Alist Security Group</div>
+              <div class="eStall">Ronmor Holdings</div>
+              <div class="eStall" style="background-color: #f9b8ff">
+                Sloane Square Visitor
+              </div>
+              <div class="eStall" style="background-color: white"></div>
+            </div>
+          </div>
+        </div>
+        <!-- ======= MAP CONTENT END ======= -->
+      </div>
+      <!-- Zoom Controls -->
+      <div class="pz-controls" aria-label="map zoom controls">
+        <button type="button" id="zoom-in" title="Zoom in">+</button>
+        <button type="button" id="zoom-out" title="Zoom out">−</button>
+        <button type="button" id="zoom-reset" title="Reset view">Reset</button>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const DESIGN_W = 3100;
+        const DESIGN_H = 2258;
+
+        const frame = document.getElementById("pz-frame");
+        const content = document.getElementById("pz-content");
+        const parking = document.getElementById("cdc-parking");
+
+        if (!frame || !content || !parking) return;
+
+        // Ensure map is sized to design pixels
+        parking.style.width = DESIGN_W + "px";
+        parking.style.height = DESIGN_H + "px";
+
+        // Pan/Zoom state
+        let baseScale = 1;
+        let minScale = 1;
+        const maxScale = 4;
+        let scale = 0;
+        let tx = 0,
+          ty = 0;
+
+        let isDragging = false;
+        let lastX = 0,
+          lastY = 0;
+
+        function clamp(v, min, max) {
+          return Math.max(min, Math.min(max, v));
+        }
+
+        function getBaseScale() {
+          const fw = frame.clientWidth;
+          const fh = frame.clientHeight;
+
+          // SharePoint/iframes can report 0 briefly → don't allow scale(0)
+          if (!fw || !fh) return null;
+
+          const s = Math.min(fw / DESIGN_W, fh / DESIGN_H);
+          // extra safety: never return 0/NaN/Infinity
+          if (!isFinite(s) || s <= 0) return null;
+
+          return s;
+        }
+
+        function centerAtScale(s) {
+          const fw = frame.clientWidth;
+          const fh = frame.clientHeight;
+
+          const cw = DESIGN_W * s;
+          const ch = DESIGN_H * s;
+
+          // center horizontally
+          tx = Math.round((fw - cw) / 2);
+          // top align
+          ty = 0;
+        }
+
+        function applyTransform() {
+          content.style.transformOrigin = "0 0";
+          content.style.transform = `translate3d(${tx}px, ${ty}px, 0) scale(${scale})`;
+        }
+
+        function setBaseAndFit() {
+          const bs = getBaseScale();
+          if (bs === null) return false;
+
+          baseScale = bs;
+          minScale = baseScale;
+
+          // first run OR after a bad resize
+          if (!scale || scale < minScale) scale = minScale;
+
+          centerAtScale(scale);
+          applyTransform();
+          return true;
+        }
+
+        // Zoom keeping pointer location stable
+        function zoomAtPoint(deltaScale, clientX, clientY) {
+          const newScale = clamp(scale * deltaScale, minScale, maxScale);
+          if (newScale === scale) return;
+
+          const rect = frame.getBoundingClientRect();
+          const cx = clientX - rect.left;
+          const cy = clientY - rect.top;
+
+          const xBefore = (cx - tx) / scale;
+          const yBefore = (cy - ty) / scale;
+
+          scale = newScale;
+
+          tx = cx - xBefore * scale;
+          ty = cy - yBefore * scale;
+          applyTransform();
+        }
+
+        // === INIT (robust for SharePoint timing) ===
+        function init() {
+          // try immediately
+          if (setBaseAndFit()) return;
+
+          // retry a few times (SharePoint embeds often size late)
+          let tries = 0;
+          const retry = setInterval(() => {
+            tries++;
+            if (setBaseAndFit() || tries >= 30) clearInterval(retry);
+          }, 150);
+        }
+
+        window.addEventListener("load", init);
+        window.addEventListener("resize", () => {
+          // avoid applying scale(0) during transient resize
+          setBaseAndFit();
+        });
+
+        // Wheel zoom
+        frame.addEventListener(
+          "wheel",
+          (e) => {
+            e.preventDefault();
+            const delta = e.deltaY < 0 ? 1.1 : 0.9;
+            zoomAtPoint(delta, e.clientX, e.clientY);
+          },
+          { passive: false },
+        );
+
+        // Double-click zoom in
+        frame.addEventListener("dblclick", (e) => {
+          e.preventDefault();
+          zoomAtPoint(1.2, e.clientX, e.clientY);
+        });
+
+        // Drag to pan (mouse)
+        frame.addEventListener("mousedown", (e) => {
+          isDragging = true;
+          lastX = e.clientX;
+          lastY = e.clientY;
+          frame.style.cursor = "grabbing";
+        });
+
+        window.addEventListener("mousemove", (e) => {
+          if (!isDragging) return;
+          const dx = e.clientX - lastX;
+          const dy = e.clientY - lastY;
+          lastX = e.clientX;
+          lastY = e.clientY;
+          tx += dx;
+          ty += dy;
+          applyTransform();
+        });
+
+        window.addEventListener("mouseup", () => {
+          isDragging = false;
+          frame.style.cursor = "default";
+        });
+
+        // === TOUCH SUPPORT ===
+        let lastTouchDistance = 0;
+        let isTouchPanning = false;
+
+        function getTouchDistance(touches) {
+          const dx = touches[0].clientX - touches[1].clientX;
+          const dy = touches[0].clientY - touches[1].clientY;
+          return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        function getTouchMidpoint(touches) {
+          return {
+            x: (touches[0].clientX + touches[1].clientX) / 2,
+            y: (touches[0].clientY + touches[1].clientY) / 2,
+          };
+        }
+
+        frame.addEventListener(
+          "touchstart",
+          (e) => {
+            if (e.touches.length === 1) {
+              isTouchPanning = true;
+              lastX = e.touches[0].clientX;
+              lastY = e.touches[0].clientY;
+            } else if (e.touches.length === 2) {
+              isTouchPanning = false;
+              lastTouchDistance = getTouchDistance(e.touches);
+            }
+          },
+          { passive: false },
+        );
+
+        frame.addEventListener(
+          "touchmove",
+          (e) => {
+            e.preventDefault();
+
+            if (e.touches.length === 1 && isTouchPanning) {
+              const dx = e.touches[0].clientX - lastX;
+              const dy = e.touches[0].clientY - lastY;
+              lastX = e.touches[0].clientX;
+              lastY = e.touches[0].clientY;
+              tx += dx;
+              ty += dy;
+              applyTransform();
+            } else if (e.touches.length === 2) {
+              const newDistance = getTouchDistance(e.touches);
+              const deltaScale = newDistance / lastTouchDistance;
+              lastTouchDistance = newDistance;
+
+              const midpoint = getTouchMidpoint(e.touches);
+              zoomAtPoint(deltaScale, midpoint.x, midpoint.y);
+            }
+          },
+          { passive: false },
+        );
+
+        frame.addEventListener("touchend", () => {
+          isTouchPanning = false;
+        });
+
+        // Buttons
+        const btnIn = document.getElementById("zoom-in");
+        const btnOut = document.getElementById("zoom-out");
+        const btnReset = document.getElementById("zoom-reset");
+
+        if (btnIn)
+          btnIn.addEventListener("click", () => {
+            const rect = frame.getBoundingClientRect();
+            zoomAtPoint(
+              1.2,
+              rect.left + rect.width / 2,
+              rect.top + rect.height / 2,
+            );
+          });
+
+        if (btnOut)
+          btnOut.addEventListener("click", () => {
+            const rect = frame.getBoundingClientRect();
+            zoomAtPoint(
+              0.8,
+              rect.left + rect.width / 2,
+              rect.top + rect.height / 2,
+            );
+          });
+
+        if (btnReset)
+          btnReset.addEventListener("click", () => {
+            scale = minScale;
+            centerAtScale(scale);
+            applyTransform();
+          });
+      })();
+    </script>
+  </body>
+</html>
