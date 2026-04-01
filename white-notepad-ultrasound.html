@@ -1,0 +1,157 @@
+<!-- Notepad Version 2 -->
+<style>
+  #notepad-container-2 {
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+    max-height: 500px;
+    min-height: 500px;
+    height: 100vh;
+    margin: 0 auto;
+    background-color: #f8f9fa;
+    font-family: "Segoe UI", sans-serif;
+    font-size: 16px;
+    color: #212529;
+    box-sizing: border-box;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 10px;
+  }
+  #notepad-container-2 p {
+    margin: 5px 0;
+  }
+  .tab-container-2 {
+    display: flex;
+    background-color: #ddd;
+    border-radius: 8px 8px 0 0;
+    border: 1px solid #dee2e6;
+    margin-bottom: 1px;
+  }
+  .tab-2 {
+    flex: 1;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-radius: 8px 8px 0 0;
+    text-align: center;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+    transition: background 0.2s;
+  }
+  .tab-2.active {
+    background-color: #ffffff;
+    border-radius: 8px 8px 0 0;
+    font-size: 18px;
+    color: #333;
+  }
+  #notepad-content-2 {
+    flex-grow: 1;
+    padding: 10px;
+    background-color: #ffffff;
+    border: 1px solid #dee2e6;
+    color: black;
+    overflow-y: auto;
+    outline: none;
+    font-size: 16px;
+    font-family: inherit;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 200px;
+  }
+  #button-container-2 {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+  #highlight-text-2 {
+    background-color: #0078d4;
+  }
+  #highlight-text-2:hover {
+    background-color: #055a9e;
+    transform: scale(1.05);
+  }
+  #clear-text-2 {
+    background-color: #ff4c4c;
+  }
+  #clear-text-2:hover {
+    background-color: #d93c3c;
+    transform: scale(1.05);
+  }
+  button {
+    padding: 10px 20px;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition:
+      background 0.2s,
+      transform 0.1s;
+  }
+</style>
+<div id="notepad-container-2">
+  <h3>Screening Questions | Notepad</h3>
+  <p>*Notes will disappear when you leave this page!</p>
+  <div class="tab-container-2">
+    <div class="tab-2 active" id="tab-new-booking-2">New Booking</div>
+    <div class="tab-2" id="tab-rebook-2">Rebook</div>
+  </div>
+  <div id="notepad-content-2" contenteditable="true"></div>
+  <div id="button-container-2">
+    <button id="highlight-text-2">Highlight & Copy</button>
+    <button id="clear-text-2">Clear</button>
+  </div>
+</div>
+<script>
+  function initializeNotepad2() {
+    const defaultContents = {
+      "new-booking": `
+<div>Pt under 300 lbs?&nbsp;</div>
+<div>Patient mobile?&nbsp;</div>
+<div>Pt aware of exam length?&nbsp;</div>`,
+      rebook: `<div>Pt aware of exam length?&nbsp;</div>`,
+    };
+    let activeTab = "new-booking";
+    const notepad = document.getElementById("notepad-content-2");
+    function switchTab(tab) {
+      activeTab = tab;
+      document
+        .querySelectorAll(".tab-2")
+        .forEach((t) => t.classList.remove("active"));
+      document.getElementById(`tab-${tab}-2`).classList.add("active");
+      notepad.innerHTML = defaultContents[tab];
+    }
+    document
+      .getElementById("tab-new-booking-2")
+      .addEventListener("click", () => switchTab("new-booking"));
+    document
+      .getElementById("tab-rebook-2")
+      .addEventListener("click", () => switchTab("rebook"));
+    document
+      .getElementById("highlight-text-2")
+      .addEventListener("click", () => {
+        const range = document.createRange();
+        range.selectNodeContents(notepad);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        document.execCommand("copy");
+        alert("All text highlighted and copied!");
+      });
+    document.getElementById("clear-text-2").addEventListener("click", () => {
+      if (confirm("Are you sure you want to clear the text?")) {
+        notepad.innerHTML = defaultContents[activeTab];
+      }
+    });
+    switchTab(activeTab);
+  }
+  if (
+    document.readyState === "complete" ||
+    document.readyState === "interactive"
+  ) {
+    initializeNotepad2();
+  } else {
+    document.addEventListener("DOMContentLoaded", initializeNotepad2);
+  }
+</script>
