@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notepad</title>
+    <style>
+      #notepad-container-1 {
+        display: flex;
+        flex-direction: column;
+        width: 400px;
+        height: 400px; /* fixed height */
+        margin: 0 auto;
+        background-color: #f8f9fa;
+        font-family: "Segoe UI", sans-serif;
+        font-size: 16px;
+        color: #212529;
+        box-sizing: border-box;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 10px;
+      }
+
+      #notepad-container-1 p {
+        margin: 5px 0;
+      }
+
+      #notepad-content-1 {
+        flex-grow: 1;
+        padding: 10px;
+        background-color: #ffffff;
+        border: 1px solid #dee2e6;
+        color: black;
+        overflow-y: auto;
+        outline: none;
+        font-size: 16px;
+        font-family: inherit;
+        box-sizing: border-box;
+        width: 100%;
+        height: 100%; /* fills remaining space in fixed container */
+      }
+
+      #button-container-1 {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 10px;
+      }
+
+      #highlight-text-1 {
+        background-color: #0078d4;
+      }
+
+      #highlight-text-1:hover {
+        background-color: #055a9e;
+        transform: scale(1.05);
+      }
+
+      #clear-text-1 {
+        background-color: #ff4c4c;
+      }
+
+      #clear-text-1:hover {
+        background-color: #d93c3c;
+        transform: scale(1.05);
+      }
+
+      button {
+        padding: 10px 20px;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        transition:
+          background 0.2s,
+          transform 0.1s;
+      }
+
+      #notepad-container-1 h3 {
+        margin: 4px 0;
+        padding: 0;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="notepad-container-1">
+      <h3>Tom Baker / Arthur Child / Holy Cross bookings</h3>
+      <p style="text-align: center">
+        (Subject line) <span style="font-size: 24px">&uarr;</span>
+      </p>
+      <p style="color: red">*Notes will disappear when you leave this page!</p>
+      <div id="notepad-content-1" contenteditable="true"></div>
+      <div id="button-container-1">
+        <button id="highlight-text-1">Highlight & Copy</button>
+        <button id="clear-text-1">Clear</button>
+      </div>
+    </div>
+    <script>
+      function initializeNotepad1() {
+        const notepad = document.getElementById("notepad-content-1");
+
+        const defaultContent = `
+      	<div>Hello,</div>
+			<div>
+				<br>Type of appointment:</div>
+				<div>Appointment Date and Time:&nbsp;</div>
+				<div>Location:&nbsp;</div>
+				<div>
+					<br>Thank you!</div>
+      `;
+
+        notepad.innerHTML = defaultContent;
+
+        document
+          .getElementById("highlight-text-1")
+          .addEventListener("click", function () {
+            const selection = window.getSelection();
+            const range = document.createRange();
+
+            range.selectNodeContents(notepad);
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            document.execCommand("copy");
+            alert("All text highlighted and copied!");
+          });
+
+        document
+          .getElementById("clear-text-1")
+          .addEventListener("click", function () {
+            if (confirm("Are you sure you want to clear the text?")) {
+              notepad.innerHTML = defaultContent;
+            }
+          });
+      }
+
+      function ensureScriptRuns1() {
+        if (
+          document.readyState === "complete" ||
+          document.readyState === "interactive"
+        ) {
+          initializeNotepad1();
+        } else {
+          document.addEventListener("DOMContentLoaded", initializeNotepad1);
+        }
+      }
+
+      if (typeof SP !== "undefined" && typeof SP.SOD !== "undefined") {
+        SP.SOD.executeFunc("sp.js", "SP.ClientContext", ensureScriptRuns1);
+      } else {
+        ensureScriptRuns1();
+      }
+    </script>
+  </body>
+</html>
