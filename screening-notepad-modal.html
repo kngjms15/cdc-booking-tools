@@ -133,8 +133,8 @@
       <p>*Notes will disappear when you leave this page!</p>
 
       <div class="tab-container">
-        <div class="tab active" id="tab-new-booking">New Booking</div>
-        <div class="tab" id="tab-rebook">Rebook</div>
+        <div class="tab active" id="tab-new-booking">PMI</div>
+        <div class="tab" id="tab-rebook">General</div>
       </div>
 
       <div id="notepad-content" contenteditable="true"></div>
@@ -149,18 +149,21 @@
       function initializeNotepad() {
         const defaultContents = {
           "new-booking": `
-          <div>Priors:&nbsp;</div>
+          <div>Exams Ordered:&nbsp;</div>
+          <div>Clinical Hx:&nbsp;</div>
           <div>Pt Diabetic | have allergies? N</div>
           <div>Pt on Blood thinners | Antibiotics? N</div>
           <div>Pt pregnant? (ask female patients only) N</div>
           <div>Pt under 300 lbs? Y</div>
           <div>Patient mobile? Y</div>
           <div>Pt aware of exam length? Y</div>
-          <div>Clinical Hx:&nbsp;</div>
         `,
           rebook: `
-          <div>Are you currently taking antibiotics?&nbsp;</div>
-          <div>Pt aware of exam length?&nbsp;</div>
+          <div>Exams Ordered:&nbsp;</div>
+          <div>Clinical Hx:&nbsp;</div>
+          <div>Pt under 300 lbs? Y</div>
+          <div>Patient mobile? Y</div>
+          <div>Pt aware of exam length? Y</div>
         `,
         };
 
