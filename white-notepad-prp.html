@@ -1,0 +1,184 @@
+<!-- Notepad Version 6 -->
+<style>
+  #notepad-container-6 {
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+    max-height: 500px;
+    min-height: 500px;
+    height: 100vh;
+    margin: 0 auto;
+    background-color: #f8f9fa;
+    font-family: "Segoe UI", sans-serif;
+    font-size: 16px;
+    color: #212529;
+    box-sizing: border-box;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 10px;
+  }
+  #notepad-container-6 p {
+    margin: 5px 0;
+  }
+  .tab-container-6 {
+    display: flex;
+    background-color: #ddd;
+    border-radius: 8px 8px 0 0;
+    border: 1px solid #dee2e6;
+    margin-bottom: 1px;
+  }
+  .tab-6 {
+    flex: 1;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-radius: 8px 8px 0 0;
+    text-align: center;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+    transition: background 0.2s;
+  }
+  .tab-6.active {
+    background-color: #ffffff;
+    border-radius: 8px 8px 0 0;
+    font-size: 18px;
+    color: #333;
+  }
+
+  .alert-banner-1 {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #fff4ce;
+    border-left: 4px solid #ffb900;
+    color: #323130;
+    padding: 10px 12px;
+    margin: 0 0 10px 0;
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  #notepad-content-6 {
+    flex-grow: 1;
+    padding: 10px;
+    background-color: #ffffff;
+    border: 1px solid #dee2e6;
+    color: black;
+    overflow-y: auto;
+    outline: none;
+    font-size: 16px;
+    font-family: inherit;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 300px;
+  }
+  #button-container-6 {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+  #highlight-text-6 {
+    background-color: #0078d4;
+  }
+  #highlight-text-6:hover {
+    background-color: #055a9e;
+    transform: scale(1.05);
+  }
+  #clear-text-6 {
+    background-color: #ff4c4c;
+  }
+  #clear-text-6:hover {
+    background-color: #d93c3c;
+    transform: scale(1.05);
+  }
+  button {
+    padding: 10px 20px;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition:
+      background 0.2s,
+      transform 0.1s;
+  }
+</style>
+<div id="notepad-container-6">
+  <h3>Screening Questions | Notepad</h3>
+  <p>*Notes will disappear when you leave this page!</p>
+  <div class="alert-banner-1">
+    <strong>Reminder:</strong> Only copy requisition wording into
+    <strong>History</strong> — all patient-stated info including screening
+    questions goes in <strong>Appt Notes</strong>.
+  </div>
+  <div class="tab-container-6">
+    <div class="tab-6 active" id="tab-new-booking-6">New Booking</div>
+    <div class="tab-6" id="tab-rebook-6">Rebook</div>
+  </div>
+  <div id="notepad-content-6" contenteditable="true"></div>
+  <div id="button-container-6">
+    <button id="highlight-text-6">Highlight & Copy</button>
+    <button id="clear-text-6">Clear</button>
+  </div>
+</div>
+<script>
+  function initializeNotepad6() {
+    const defaultContents = {
+      "new-booking": `
+<div>Pt Diabetic: N</div>
+<div>Medical allergies (latex, contrast, cortisone, local anesthetics, etc): N</div>
+<div>Pt on Blood thinners: N</div>
+<div>Pt on Oral Steroid (prednisone): N</div>
+<div>Pt pregnant: (ask female pts only) N</div>
+<div>Pt under 300 lbs? Y</div>
+<div>Patient mobile? Y</div>
+<div>Pt aware driver required (for Spine/Disco only): Y</div>
+<div>Pt aware of preparations, and post procedures: Y</div>
+<div>Pt aware of exam length? Y</div>
+<div>Pt aware NO CASH POLICY: Y</div>`,
+      rebook: `
+      <div>Are you currently taking antibiotics?&nbsp;</div>
+<div>Pt aware of exam length?&nbsp;</div>`,
+    };
+    let activeTab = "new-booking";
+    const notepad = document.getElementById("notepad-content-6");
+    function switchTab(tab) {
+      activeTab = tab;
+      document
+        .querySelectorAll(".tab-6")
+        .forEach((t) => t.classList.remove("active"));
+      document.getElementById(`tab-${tab}-6`).classList.add("active");
+      notepad.innerHTML = defaultContents[tab];
+    }
+    document
+      .getElementById("tab-new-booking-6")
+      .addEventListener("click", () => switchTab("new-booking"));
+    document
+      .getElementById("tab-rebook-6")
+      .addEventListener("click", () => switchTab("rebook"));
+    document
+      .getElementById("highlight-text-6")
+      .addEventListener("click", () => {
+        const range = document.createRange();
+        range.selectNodeContents(notepad);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        document.execCommand("copy");
+        alert("All text highlighted and copied!");
+      });
+    document.getElementById("clear-text-6").addEventListener("click", () => {
+      if (confirm("Are you sure you want to clear the text?")) {
+        notepad.innerHTML = defaultContents[activeTab];
+      }
+    });
+    switchTab(activeTab);
+  }
+  if (
+    document.readyState === "complete" ||
+    document.readyState === "interactive"
+  ) {
+    initializeNotepad6();
+  } else {
+    document.addEventListener("DOMContentLoaded", initializeNotepad6);
+  }
+</script>
